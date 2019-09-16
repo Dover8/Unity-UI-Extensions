@@ -145,7 +145,22 @@ namespace UnityEngine.UI
         public RangeSliderEvent OnValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
 
 
+
+
         // Private fields
+
+        /// <summary>
+        /// An Enum that says in what state we and interacting with the slider
+        /// </summary>
+        private enum InteractionState
+        {
+            Low,
+            High,
+            Bar,
+            None
+        }
+
+        private InteractionState interactionState = InteractionState.None;
 
         private Image m_FillImage;
         private Transform m_FillTransform;
@@ -435,7 +450,46 @@ namespace UnityEngine.UI
             //and if it was neither handle, we will have a seperate case where both handles move uniformly 
             //moving the entire range
 
-            RectTransform clickRect = m_HighHandleRect ?? m_LowHandleRect ?? m_FillContainerRect;
+            //this is where we use our interationState
+            switch (interactionState)
+            {
+                case InteractionState.Low:
+                    NormalizedLowValue = CalculateDrag(eventData, cam, m_LowHandleContainerRect, m_LowOffset);
+                    break;
+                case InteractionState.High:
+                    NormalizedHighValue = CalculateDrag(eventData, cam, m_HighHandleContainerRect, m_HighOffset);
+                    break;
+                case InteractionState.Bar:
+                    //special case
+                    CalculateBarDrag(eventData, cam);
+                    break;
+                case InteractionState.None:
+                    break;
+            }
+        }
+
+        private float CalculateDrag(PointerEventData eventData, Camera cam, RectTransform containerRect, Vector2 offset)
+        { 
+            RectTransform clickRect = containerRect ?? m_FillContainerRect;
+            if (clickRect != null && clickRect.rect.size[0] > 0)
+            {
+                Vector2 localCursor;
+                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(clickRect, eventData.position, cam, out localCursor))
+                {
+                    return 0f;
+                }
+                localCursor -= clickRect.rect.position;
+
+                float val = Mathf.Clamp01((localCursor - offset)[0] / clickRect.rect.size[0]);
+
+                return val;
+            }
+            return 0;
+        }
+
+        private void CalculateBarDrag(PointerEventData eventData, Camera cam)
+        {
+            RectTransform clickRect = m_FillContainerRect;
             if (clickRect != null && clickRect.rect.size[0] > 0)
             {
                 Vector2 localCursor;
@@ -445,9 +499,31 @@ namespace UnityEngine.UI
                 }
                 localCursor -= clickRect.rect.position;
 
-                float lowVal = Mathf.Clamp01((localCursor - m_LowOffset)[0] / clickRect.rect.size[0]);
+                //now we need to get the delta drag on the bar
+                //and move both the normalized low and high values by this amount
+                //but also check that neither is going beyond the bounds
+                if (NormalizedLowValue >= 0 && NormalizedHighValue <= 1)
+                {
+                    //find the mid point on the current bar
+                    float mid = (NormalizedHighValue + NormalizedLowValue)/2;
+                    //find where the new mid point should be
+                    float val = Mathf.Clamp01((localCursor)[0] / clickRect.rect.size[0]);
+                    //calculate the delta
+                    float delta = val - mid;
+                    //check the clamp range
+                    if (NormalizedLowValue + delta < 0)
+                    {
+                        delta = -NormalizedLowValue;
+                    }
+                    else if (NormalizedHighValue + delta > 1)
+                    {
+                        delta = 1 - NormalizedHighValue;
+                    }
 
-                NormalizedLowValue = lowVal;
+                    //adjust both ends
+                    NormalizedLowValue += delta;
+                    NormalizedHighValue += delta;
+                }
             }
         }
 
@@ -473,6 +549,7 @@ namespace UnityEngine.UI
                 {
                     m_HighOffset = localMousePos;
                 }
+                interactionState = InteractionState.High;
             }
             else if (m_LowHandleRect != null && RectTransformUtility.RectangleContainsScreenPoint(m_LowHandleRect, eventData.position, eventData.enterEventCamera))
             {
@@ -481,11 +558,13 @@ namespace UnityEngine.UI
                 {
                     m_LowOffset = localMousePos;
                 }
+                interactionState = InteractionState.Low;
             }
             else
             {
                 //outside the handles, move the entire slider along
                 UpdateDrag(eventData, eventData.pressEventCamera);
+                interactionState = InteractionState.Bar;
             }
         }
 
@@ -496,6 +575,12 @@ namespace UnityEngine.UI
                 return;
             }
             UpdateDrag(eventData, eventData.pressEventCamera);
+        }
+
+        public override void OnPointerUp(PointerEventData eventData)
+        {
+            base.OnPointerUp(eventData);
+            interactionState = InteractionState.None;
         }
 
         public override void OnMove(AxisEventData eventData)
