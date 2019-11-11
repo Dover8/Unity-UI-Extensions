@@ -1,10 +1,8 @@
 // /*-------------------------------------------
 // ---------------------------------------------
 // Creation Date: 12/09/19
-// Author: bmackinnon
-// Description: Iron Works
-// Extension of the Unity.UI Slider that has two handles and a Min and Max value
-// Soluis Technolgies ltd.
+// Author: Ben MacKinnon
+// Description: Range Slider. Extension of the Unity.UI Slider that has two handles and a Low and High value.
 // ---------------------------------------------
 // -------------------------------------------*/
 
@@ -12,7 +10,7 @@ using System;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace UnityEngine.UI
+namespace UnityEngine.UI.Extensions
 {
     [AddComponentMenu("UI/Range Slider", 34)]
     [ExecuteInEditMode]
@@ -83,7 +81,7 @@ namespace UnityEngine.UI
                 {
                     return 0;
                 }
-                return Mathf.InverseLerp(MinValue, MaxValue, LowValue); //max value may need to be high value here...
+                return Mathf.InverseLerp(MinValue, MaxValue, LowValue);
             }
             set
             {
@@ -119,7 +117,7 @@ namespace UnityEngine.UI
                 {
                     return 0;
                 }
-                return Mathf.InverseLerp(MinValue, MaxValue, HighValue); //min value may need to be low value here...
+                return Mathf.InverseLerp(MinValue, MaxValue, HighValue);
             }
             set
             {
@@ -143,9 +141,6 @@ namespace UnityEngine.UI
         private RangeSliderEvent m_OnValueChanged = new RangeSliderEvent();
 
         public RangeSliderEvent OnValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
-
-
-
 
         // Private fields
 
