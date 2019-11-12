@@ -1987,6 +1987,10 @@ namespace UnityEditor.UI
             rangeSlider.FillRect = fillRect;
             rangeSlider.LowHandleRect = lowHandleRect;
             rangeSlider.HighHandleRect = highHandleRect;
+            rangeSlider.LowValue = rangeSlider.MinValue;
+            rangeSlider.HighValue = rangeSlider.MaxValue;
+            rangeSlider.transition = Selectable.Transition.None;
+
             Selection.activeGameObject = rangeSliderRoot;
         }
         #endregion
