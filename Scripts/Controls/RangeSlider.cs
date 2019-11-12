@@ -1,10 +1,7 @@
-// /*-------------------------------------------
-// ---------------------------------------------
-// Creation Date: 12/09/19
-// Author: Ben MacKinnon
-// Description: Range Slider. Extension of the Unity.UI Slider that has two handles and a Low and High value.
-// ---------------------------------------------
-// -------------------------------------------*/
+/// Credit Ben MacKinnon @Dover8
+/// Sourced from - https://github.com/Dover8/Unity-UI-Extensions/tree/range-slider
+/// Usage: Extension of the standard slider. Two handles determine a low and high value between a Min and Max. 
+/// Raises a UnityEvent passing the low and high values
 
 using System;
 using UnityEngine.Events;
