@@ -529,7 +529,6 @@ namespace UnityEngine.UI.Extensions
             if (!MayDrag(eventData))
                 return;
 
-            base.OnPointerDown(eventData);
 
             //HANDLE DRAG EVENTS
             m_LowOffset = m_HighOffset = Vector2.zero;
@@ -542,6 +541,10 @@ namespace UnityEngine.UI.Extensions
                     m_HighOffset = localMousePos;
                 }
                 interactionState = InteractionState.High;
+                if (transition == Transition.ColorTint)
+                {
+                    targetGraphic = m_HighHandleRect.GetComponent<Graphic>();
+                }
             }
             else if (m_LowHandleRect != null && RectTransformUtility.RectangleContainsScreenPoint(m_LowHandleRect, eventData.position, eventData.enterEventCamera))
             {
@@ -551,13 +554,22 @@ namespace UnityEngine.UI.Extensions
                     m_LowOffset = localMousePos;
                 }
                 interactionState = InteractionState.Low;
+                if (transition == Transition.ColorTint)
+                {
+                    targetGraphic = m_LowHandleRect.GetComponent<Graphic>();
+                }
             }
             else
             {
                 //outside the handles, move the entire slider along
                 UpdateDrag(eventData, eventData.pressEventCamera);
                 interactionState = InteractionState.Bar;
+                if (transition == Transition.ColorTint)
+                {
+                    targetGraphic = m_FillImage;
+                }
             }
+            base.OnPointerDown(eventData);
         }
 
         public virtual void OnDrag(PointerEventData eventData)
